@@ -15,7 +15,7 @@ const (
 const (
 	ContextValidatedBody  = "validated_body"
 	ContextValidatedQuery = "validated_query"
-	ContextUserId         = "user_id"
+	ContextUser           = "user"
 )
 
 const (

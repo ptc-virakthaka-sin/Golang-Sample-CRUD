@@ -12,6 +12,7 @@ const (
 	ErrCodeAuthorizationError          = "AUTHORIZATION_ERROR"
 	ErrCodeTokenError                  = "TOKEN_ERROR"
 	ErrCodeDatabaseError               = "DATABASE_ERROR"
+	ErrCodeDtoError                    = "DTO_ERROR"
 	ErrCodeRedisError                  = "REDIS_ERROR"
 	ErrCodeDataNotFound                = "DATA_NOT_FOUND"
 	ErrCodeDataAlreadyExist            = "DATA_ALREADY_EXIST"

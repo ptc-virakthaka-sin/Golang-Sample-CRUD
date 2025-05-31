@@ -12,9 +12,9 @@ import (
 
 type Student interface {
 	GetAllStudent(query dto.QueryParams) ([]model.Student, pagination.PageResponse, error)
-	CreateStudent(req dto.StudentCreateRequest) (*model.Student, error)
-	UpdateStudent(req dto.StudentUpdateRequest) (*model.Student, error)
-	GetStudent(Id string) (*model.Student, error)
+	CreateStudent(req dto.StudentCreateRequest) (model.Student, error)
+	UpdateStudent(req dto.StudentUpdateRequest) (model.Student, error)
+	GetStudent(Id string) (model.Student, error)
 	DeleteStudent(Id string) error
 }
 
@@ -31,17 +31,23 @@ func (h *student) GetAllStudent(query dto.QueryParams) ([]model.Student, paginat
 	return h.repo.GetAllStudent(query)
 }
 
-func (h *student) CreateStudent(req dto.StudentCreateRequest) (entity *model.Student, err error) {
-	_ = copier.Copy(&entity, &req)
+func (h *student) CreateStudent(req dto.StudentCreateRequest) (model.Student, error) {
+	entity := model.Student{}
+	if err := copier.Copy(&entity, &req); err != nil {
+		return entity, err
+	}
 	return h.repo.CreateStudent(entity)
 }
 
-func (h *student) UpdateStudent(req dto.StudentUpdateRequest) (entity *model.Student, err error) {
-	_ = copier.Copy(&entity, &req)
+func (h *student) UpdateStudent(req dto.StudentUpdateRequest) (model.Student, error) {
+	entity := model.Student{}
+	if err := copier.Copy(&entity, &req); err != nil {
+		return entity, err
+	}
 	return h.repo.UpdateStudent(entity)
 }
 
-func (h *student) GetStudent(Id string) (*model.Student, error) {
+func (h *student) GetStudent(Id string) (model.Student, error) {
 	return h.repo.GetStudent(Id)
 }
 

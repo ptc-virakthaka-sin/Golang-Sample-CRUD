@@ -11,7 +11,7 @@ import (
 type SuccessResponse struct {
 	Message string                   `json:"message,omitempty"`
 	Paging  *pagination.PageResponse `json:"pagination,omitempty"`
-	Data    interface{}              `json:"data,omitempty"`
+	Data    interface{}              `json:"data"`
 }
 
 func SendSuccessResponse(c *fiber.Ctx, data interface{}) error {

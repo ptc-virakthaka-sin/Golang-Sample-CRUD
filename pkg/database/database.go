@@ -30,6 +30,8 @@ func New() (*gorm.DB, error) {
 		_ = db.AutoMigrate(
 			&model.Department{},
 			&model.Student{},
+			&model.Token{},
+			&model.User{},
 		)
 	}
 	return db, nil

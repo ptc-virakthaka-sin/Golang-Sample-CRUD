@@ -1,7 +1,5 @@
 package ierror
 
-import "net/http"
-
 /*
 Bad Request 400
 - Business logic error
@@ -16,16 +14,10 @@ func (e *ClientError) Error() string {
 	return e.Message
 }
 
-func NewClientError(httpStatus int, code, message string) *ClientError {
-	status := http.StatusBadRequest
-
-	if httpStatus >= 400 && httpStatus < 500 {
-		status = httpStatus
-	}
-
+func NewClientError(status int, code, message string) *ClientError {
 	return &ClientError{
+		Message: message,
 		Status:  status,
 		Code:    code,
-		Message: message,
 	}
 }

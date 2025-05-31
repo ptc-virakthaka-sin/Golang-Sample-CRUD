@@ -25,14 +25,14 @@ func JWTProtected() fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 		}
 
-		c.Locals("user", token.Claims.(jwt.MapClaims))
+		c.Locals(constant.ContextUser, token.Claims.(jwt.MapClaims))
 		return c.Next()
 	}
 }
 
 func RequireRole(role string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		claims := c.Locals("user").(jwt.MapClaims)
+		claims := c.Locals(constant.ContextUser).(jwt.MapClaims)
 		if claims["role"] != role {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Insufficient permissions"})
 		}

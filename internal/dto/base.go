@@ -5,6 +5,6 @@ import (
 )
 
 type QueryParams struct {
-	Query string `json:"query" validate:"required"`
+	Query string `json:"query"`
 	pagination.PageRequest
 }

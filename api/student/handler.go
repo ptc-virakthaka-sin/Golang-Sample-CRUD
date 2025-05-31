@@ -3,6 +3,7 @@ package student
 import (
 	"errors"
 	"learn-fiber/api/response"
+	"learn-fiber/internal/constant"
 	"learn-fiber/internal/dto"
 	"learn-fiber/internal/ierror"
 	"learn-fiber/internal/service"
@@ -15,12 +16,12 @@ import (
 )
 
 type Handler struct {
-	service service.Student
+	svc service.Student
 }
 
 func NewHandler(db *gorm.DB) *Handler {
 	svc := service.NewStudent(db)
-	return &Handler{service: svc}
+	return &Handler{svc: svc}
 }
 
 func (h *Handler) GetList(c *fiber.Ctx) error {
@@ -28,59 +29,72 @@ func (h *Handler) GetList(c *fiber.Ctx) error {
 	if hasError, err := validator.V.Valid(query); hasError {
 		return ierror.NewValidationError(err)
 	}
-	result, page, err := h.service.GetAllStudent(query)
+	result, page, err := h.svc.GetAllStudent(query)
 	if err != nil {
-		return response.SendFailResponse(c, err.Error())
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}
 	var res []Response
-	_ = copier.Copy(&res, &result)
+	if err = copier.Copy(&res, &result); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
+	}
 	return response.SendSuccessResponsePaging(c, res, page)
 }
 
 func (h *Handler) GetById(c *fiber.Ctx) error {
 	id := c.Params("id")
-	result, err := h.service.GetStudent(id)
+	result, err := h.svc.GetStudent(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return response.SendSuccessResponse(c, nil)
+			return ierror.NewClientError(200, ierror.ErrCodeDataNotFound, err.Error())
 		}
-		return err
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}
 	var res Response
-	_ = copier.Copy(&res, &result)
+	if err = copier.Copy(&res, &result); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
+	}
 	return response.SendSuccessResponse(c, res)
 }
 
 func (h *Handler) Create(c *fiber.Ctx) error {
-	req, _ := common.GetRequestBody[dto.StudentCreateRequest](c)
-	if hasError, err := validator.V.Valid(req); hasError {
-		return ierror.NewValidationError(err)
-	}
-	result, err := h.service.CreateStudent(req)
+	req, err := common.GetRequestBody[dto.StudentCreateRequest](c)
 	if err != nil {
-		return response.SendFailResponse(c, err.Error())
+		return err
+	}
+	result, err := h.svc.CreateStudent(req)
+	if err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}
 	var res Response
-	_ = copier.Copy(&res, &result)
+	if err = copier.Copy(&res, &result); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
+	}
 	return response.SendSuccessResponse(c, res)
 }
 
 func (h *Handler) Update(c *fiber.Ctx) error {
-	req, _ := common.GetRequestBody[dto.StudentUpdateRequest](c)
-	if hasError, err := validator.V.Valid(req); hasError {
-		return ierror.NewValidationError(err)
-	}
-	result, err := h.service.UpdateStudent(req)
+	req, err := common.GetRequestBody[dto.StudentUpdateRequest](c)
 	if err != nil {
-		return response.SendFailResponse(c, err.Error())
+		return err
+	}
+	result, err := h.svc.UpdateStudent(req)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ierror.NewClientError(200, ierror.ErrCodeDataNotFound, err.Error())
+		}
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}
 	var res Response
-	_ = copier.Copy(&res, &result)
+	if err = copier.Copy(&res, &result); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
+	}
 	return response.SendSuccessResponse(c, res)
 }
 
 func (h *Handler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
-	_ = h.service.DeleteStudent(id)
-	return response.SendSuccessResponse(c, nil)
+	if err := h.svc.DeleteStudent(id); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
+	}
+	return response.SendSuccessResponse(c, constant.Success)
 }

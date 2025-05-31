@@ -1,7 +1,9 @@
 package department
 
 import (
+	"errors"
 	"learn-fiber/api/response"
+	"learn-fiber/internal/constant"
 	"learn-fiber/internal/dto"
 	"learn-fiber/internal/ierror"
 	"learn-fiber/internal/service"
@@ -14,12 +16,12 @@ import (
 )
 
 type Handler struct {
-	service service.Department
+	svc service.Department
 }
 
 func NewHandler(db *gorm.DB) *Handler {
 	svc := service.NewDepartment(db)
-	return &Handler{service: svc}
+	return &Handler{svc: svc}
 }
 
 func (h *Handler) GetList(c *fiber.Ctx) error {
@@ -27,23 +29,30 @@ func (h *Handler) GetList(c *fiber.Ctx) error {
 	if hasError, err := validator.V.Valid(query); hasError {
 		return ierror.NewValidationError(err)
 	}
-	result, page, err := h.service.GetAllDepartment(query)
+	result, page, err := h.svc.GetAllDepartment(query)
 	if err != nil {
-		return response.SendFailResponse(c, err.Error())
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}
 	var res []Response
-	_ = copier.Copy(&res, &result)
+	if err = copier.Copy(&res, &result); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
+	}
 	return response.SendSuccessResponsePaging(c, res, page)
 }
 
 func (h *Handler) GetById(c *fiber.Ctx) error {
 	id := c.Params("id")
-	result, err := h.service.GetDepartment(id)
+	result, err := h.svc.GetDepartment(id)
 	if err != nil {
-		return response.SendFailResponse(c, err.Error())
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.SendSuccessResponse(c, err.Error())
+		}
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}
 	var res Response
-	_ = copier.Copy(&res, &result)
+	if err = copier.Copy(&res, &result); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
+	}
 	return response.SendSuccessResponse(c, res)
 }
 
@@ -52,12 +61,14 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 	if hasError, err := validator.V.Valid(req); hasError {
 		return ierror.NewValidationError(err)
 	}
-	result, err := h.service.CreateDepartment(req)
+	result, err := h.svc.CreateDepartment(req)
 	if err != nil {
-		return response.SendFailResponse(c, err.Error())
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}
 	var res Response
-	_ = copier.Copy(&res, &result)
+	if err = copier.Copy(&res, &result); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
+	}
 	return response.SendSuccessResponse(c, res)
 }
 
@@ -66,17 +77,24 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 	if hasError, err := validator.V.Valid(req); hasError {
 		return ierror.NewValidationError(err)
 	}
-	result, err := h.service.UpdateDepartment(req)
+	result, err := h.svc.UpdateDepartment(req)
 	if err != nil {
-		return response.SendFailResponse(c, err.Error())
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ierror.NewClientError(200, ierror.ErrCodeDataNotFound, err.Error())
+		}
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}
 	var res Response
-	_ = copier.Copy(&res, &result)
+	if err = copier.Copy(&res, &result); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
+	}
 	return response.SendSuccessResponse(c, res)
 }
 
 func (h *Handler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
-	_ = h.service.DeleteDepartment(id)
-	return response.SendSuccessResponse(c, nil)
+	if err := h.svc.DeleteDepartment(id); err != nil {
+		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
+	}
+	return response.SendSuccessResponse(c, constant.Success)
 }

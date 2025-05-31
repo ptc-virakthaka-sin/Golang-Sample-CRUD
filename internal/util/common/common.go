@@ -3,6 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"learn-fiber/internal/constant"
 	"learn-fiber/internal/ierror"
 	"net/http"
@@ -13,21 +14,19 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetBearerToken(c *fiber.Ctx) (string, error) {
-	var token string
-
+func GetAccessToken(c *fiber.Ctx) (token string, err error) {
 	authorization := c.Get(fiber.HeaderAuthorization)
 	if authorization == "" {
-		return token, ierror.NewAuthenticationError(ierror.ErrCodeAuthenticationError, "no authorization header")
+		err = errors.New("no authorization header")
+		return
 	}
-
 	values := strings.Split(authorization, " ")
 	if len(values) != 2 {
-		return token, ierror.NewAuthenticationError(ierror.ErrCodeAuthenticationError, "authorization header malformed")
+		err = errors.New("authorization header malformed")
+		return
 	}
-
 	token = values[1]
-	return token, nil
+	return
 }
 
 func GetRequestBody[T any](c *fiber.Ctx) (T, error) {
@@ -70,12 +69,9 @@ func GetQueryParam[T any](c *fiber.Ctx) (T, error) {
 	return v, nil
 }
 
-func GetUserId(c *fiber.Ctx) string {
-	userId := c.Locals(constant.ContextUserId)
-	if userId != nil {
-		return userId.(string)
-	}
-	return ""
+func GetUser(c *fiber.Ctx) string {
+	claims := c.Locals(constant.ContextUser).(jwt.MapClaims)
+	return claims["username"].(string)
 }
 
 func SplitVersion(version string) (int, int, error) {

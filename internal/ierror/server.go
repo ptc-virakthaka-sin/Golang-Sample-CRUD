@@ -1,7 +1,5 @@
 package ierror
 
-import "net/http"
-
 type ServerError struct {
 	Status  int
 	Code    string
@@ -12,16 +10,10 @@ func (e *ServerError) Error() string {
 	return e.Message
 }
 
-func NewServerError(httpStatus int, code, message string) *ServerError {
-	status := http.StatusInternalServerError
-
-	if httpStatus >= 500 && httpStatus < 600 {
-		status = httpStatus
-	}
-
+func NewServerError(code, message string) *ServerError {
 	return &ServerError{
-		Status:  status,
-		Code:    code,
 		Message: message,
+		Status:  500,
+		Code:    code,
 	}
 }

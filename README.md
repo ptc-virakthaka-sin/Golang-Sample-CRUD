@@ -1,6 +1,6 @@
 # Golang CRUD Service
 
-This is a sample CRUD service built with Golang, demonstrating a layered architecture that separates concerns into handler, service, repository, and model layers. The project uses **TiDB** as the relational database and **Redis** for caching and other in-memory operations.
+This is a sample CRUD service built with Golang, demonstrating a layered architecture that separates concerns into handler, service, repository, and model layers. The project uses **TiDB** as the relational database, **Redis** for caching and other in-memory operations, and **JWT** for authentication.
 
 ## 🚀 Project Purpose
 
@@ -15,6 +15,7 @@ Build a sample CRUD service API with Golang to showcase clean code structure and
 - **[Redis](https://redis.io)** — In-memory data store
 - **[Validator](https://github.com/go-playground/validator)** — Input validation
 - **[Copier](https://github.com/jinzhu/copier)** — Object copying for DTOs
+- **[JWT](https://github.com/golang-jwt/jwt)** — JSON Web Token implementation for authentication
 
 ## 📁 Project Structure
 
@@ -23,19 +24,21 @@ Build a sample CRUD service API with Golang to showcase clean code structure and
 │   └── app/
 │       └── main.go                # Application entry point
 ├── pkg/                           # Shared package configure
-│   └── bcrypt/
-|       └── bcrypt.go              # Bcrypt hashing                 
-│   └── redis/                     
-|       └── redis.go               # Redis configuration
-│   └── db/                        
-|       └── db.go                  # DB configuration
+│   └── crypto/
+│       └── aes.go                 # Advanced Encryption Standard encryption
+│       └── bcrypt.go              # Bcrypt hashing
+│   └── redis/
+│       └── redis.go               # Redis configuration
+│   └── db/
+│       └── db.go                  # DB configuration
 ├── api/
 │   └── student/
 │       ├── route.go               # Student-related endpoints
 │       └── handler.go             # Logic for handling student API requests
 ├── internal/
-│   ├── service/                   # Business logic, called from handler
+│   ├── middleware/                # HTTP middleware (e.g., auth, logging)
 │   ├── repository/                # Data access layer (calls GORM & queries DB)
+│   ├── service/                   # Business logic, called from handler
 │   ├── model/                     # Database models/entities
 │   └── dto/                       # DTOs for transforming request/response data
 ```
@@ -43,7 +46,7 @@ Build a sample CRUD service API with Golang to showcase clean code structure and
 ## 📌 Key Concepts
 
 - **Layered Architecture**: Divides the project into clear layers for maintainability and scalability.
-- **DTO Pattern**: Uses `copier` to map between internal models and response/request structures.
+- **DTO Pattern**: Uses `copier` to map between internal models and request/response structures.
 - **Validation**: Ensures request payloads are validated with `go-playground/validator`.
 - **ORM**: Leverages GORM to interact with TiDB in a concise and type-safe way.
 
@@ -63,10 +66,9 @@ Build a sample CRUD service API with Golang to showcase clean code structure and
 ## 🔧 Future Enhancements
 
 - Add unit tests and integration tests
-- Implement authentication and authorization
 - Dockerize the application
 - Add Swagger/OpenAPI documentation
 
 ## 📄 License
 
-This project is open-source and available under the [MIT License](LICENSE).
+This project is open-source and available under the [MIT License]().

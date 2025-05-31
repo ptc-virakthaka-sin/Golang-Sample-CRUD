@@ -3,13 +3,16 @@ package model
 import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"time"
 )
 
 type Student struct {
-	Id     string `gorm:"column:id; type:varchar(36); not null; primaryKey"`
-	Code   string `gorm:"column:code; type:varchar(255)"`
-	NameEN string `gorm:"column:name_en; type:varchar(255)"`
-	NameKM string `gorm:"column:name_km; type:varchar(255)"`
+	Id        string `gorm:"column:id; type:varchar(36); not null; primaryKey"`
+	Code      string `gorm:"column:code; type:varchar(255)"`
+	NameEN    string `gorm:"column:name_en; type:varchar(255)"`
+	NameKM    string `gorm:"column:name_km; type:varchar(255)"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (Student) TableName() string {

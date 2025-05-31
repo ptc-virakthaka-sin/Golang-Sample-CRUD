@@ -11,13 +11,10 @@ func WherePaginateAndOrderBy(db *gorm.DB, paginate *pagination.Paginate) *gorm.D
 	if paginate == nil {
 		return db
 	}
-
 	db = db.Offset(paginate.Offset).Limit(paginate.Limit)
-
 	if paginate.OrderBy != "" {
 		db = db.Order(paginate.OrderBy)
 	}
-
 	return db
 }
 

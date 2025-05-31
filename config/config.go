@@ -22,6 +22,7 @@ type (
 		Redis    `mapstructure:",squash"`
 		PermLogs `mapstructure:",squash"`
 		JWT      `mapstructure:",squash"`
+		AES      `mapstructure:",squash"`
 	}
 
 	App struct {
@@ -57,6 +58,10 @@ type (
 
 	JWT struct {
 		Secret string `mapstructure:"jwt_secret"`
+	}
+
+	AES struct {
+		KEY string `mapstructure:"aes_key"`
 	}
 )
 
@@ -110,6 +115,7 @@ func Init() error {
 
 	pflag.String("tab_enable_text", "", "tablenames before split")
 	pflag.String("jwt_secret", "", "jwt secret")
+	pflag.String("aes_key", "", "aes key")
 
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
@@ -150,6 +156,9 @@ func Init() error {
 		},
 		JWT: JWT{
 			Secret: viper.GetString("jwt_secret"),
+		},
+		AES: AES{
+			KEY: viper.GetString("aes_key"),
 		},
 	}
 
