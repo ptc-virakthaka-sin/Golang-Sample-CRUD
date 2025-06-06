@@ -1,9 +1,5 @@
 package ierror
 
-/*
-Bad Request 400
-- Business logic error
-*/
 type ClientError struct {
 	Status  int
 	Code    string

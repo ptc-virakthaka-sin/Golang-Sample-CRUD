@@ -1,13 +1,15 @@
 package app
 
 import (
-	"crypto/rand"
 	"fmt"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"learn-fiber/api/auth"
 	"learn-fiber/api/department"
 	"learn-fiber/api/student"
 	"learn-fiber/config"
 	"learn-fiber/internal/ierror"
+	"learn-fiber/internal/middleware"
 	"learn-fiber/internal/util/gracefulshutdown"
 	"learn-fiber/internal/util/validator"
 	"learn-fiber/pkg/database"
@@ -15,17 +17,15 @@ import (
 	"learn-fiber/pkg/redis"
 	"time"
 
-	"github.com/gofiber/fiber/v2/middleware/favicon"
-	"github.com/gofiber/fiber/v2/middleware/healthcheck"
-
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/favicon"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	flogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	"gorm.io/gorm"
 )
 
 func Run() {
@@ -34,31 +34,28 @@ func Run() {
 	if err != nil {
 		logger.L.Fatal("database connection error: %v", err)
 	}
-	err = redis.Init()
-	if err != nil {
+	if err = redis.New(); err != nil {
 		logger.L.Fatal("redis connection error: %v", err)
 	}
-
+	go redis.StartWorker(db, "worker-1")
 	validator.Init()
 	app := fiber.New(fiber.Config{
-		ErrorHandler:      ierror.HandleErrorResponse(),
-		JSONEncoder:       sonic.Marshal,
-		JSONDecoder:       sonic.Unmarshal,
-		EnablePrintRoutes: config.Cfg.EnablePrintRoute,
 		IdleTimeout:       time.Duration(config.Cfg.IdleTimeout) * time.Second,
+		EnablePrintRoutes: config.Cfg.EnablePrintRoute,
+		ErrorHandler:      ierror.HandleErrorResponse(),
+		JSONDecoder:       sonic.Unmarshal,
+		JSONEncoder:       sonic.Marshal,
 	})
 
 	app.Use(cors.New())
 	app.Use(helmet.New())
 	app.Use(recover.New())
-	app.Use(requestid.New(requestid.Config{
-		Generator: ReqIDGenerator,
-	}))
 	app.Use(favicon.New())
+	app.Use(middleware.Limiter())
+	app.Use(requestid.New(requestid.Config{Generator: uuid.NewString}))
 
 	initRootHandler(app)
 	initHealthCheck(app, db)
-
 	api := app.Group("/api")
 
 	initAPIV1(api, db)
@@ -122,14 +119,4 @@ func initAPIV1(app fiber.Router, db *gorm.DB) {
 	auth.AddRoutes(v1, db)
 	student.AddRoutes(v1, db)
 	department.AddRoutes(v1, db)
-}
-
-func ReqIDGenerator() string {
-	timeNow := time.Now().Unix()
-	b := make([]byte, 4)
-	_, err := rand.Read(b)
-	if err != nil {
-		return fmt.Sprintf("%v", timeNow)
-	}
-	return fmt.Sprintf("%v%x", timeNow, b)
 }

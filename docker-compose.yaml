@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  tidb:
+    image: pingcap/tidb:latest
+    ports:
+      - "4000:4000"
+    networks:
+      - sample-net
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - sample-net
+  app:
+    container_name: sample-crud
+    image: sample-crud
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - tidb
+    networks:
+      - sample-net
+    environment:
+      - TZ=Asia/Phnom_Penh
+      - REDIS_ADDR=redis
+      - DB_HOST=tidb
+networks:
+  sample-net:

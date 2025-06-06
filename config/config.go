@@ -13,7 +13,9 @@ type (
 	Config struct {
 		Host             string `mapstructure:"host"`
 		Port             string `mapstructure:"port"`
+		RateLimit        int    `mapstructure:"rate_limit"`
 		IdleTimeout      int    `mapstructure:"idle_timeout"`
+		FailedAttempts   int    `mapstructure:"failed_attempts"`
 		EnablePrintRoute bool   `mapstructure:"enable_print_route"`
 
 		App      `mapstructure:",squash"`
@@ -92,7 +94,9 @@ func Init() error {
 	// 3. replace match any of the existing env vars used in flags
 	pflag.String("host", "", "server host")
 	pflag.Int("port", 8000, "server port")
+	pflag.Int("rate_limit", 100, "rate limit")
 	pflag.Int("idle_timeout", 5, "server idle timeout")
+	pflag.Int("failed_attempts", 5, "login failed attempts")
 	pflag.Bool("enable_print_route", true, "server enable print route")
 
 	pflag.String("app_env", "local", "app env")
@@ -110,7 +114,7 @@ func Init() error {
 	pflag.Bool("db_auto_migrate", false, "database auto migrate")
 
 	pflag.String("redis_addr", "", "redis address")
-	pflag.String("redis_port", "15951", "redis port")
+	pflag.String("redis_port", "6379", "redis port")
 	pflag.String("redis_pwd", "", "redis password")
 
 	pflag.String("tab_enable_text", "", "tablenames before split")
@@ -127,7 +131,9 @@ func Init() error {
 	Cfg = &Config{
 		Host:             viper.GetString("host"),
 		Port:             viper.GetString("port"),
+		RateLimit:        viper.GetInt("rate_limit"),
 		IdleTimeout:      viper.GetInt("idle_timeout"),
+		FailedAttempts:   viper.GetInt("failed_attempts"),
 		EnablePrintRoute: viper.GetBool("enable_print_route"),
 		App: App{
 			Env:     viper.GetString("app_env"),

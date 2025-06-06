@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 	"learn-fiber/api/response"
 	"learn-fiber/internal/constant"
@@ -11,6 +9,10 @@ import (
 	"learn-fiber/internal/service"
 	"learn-fiber/internal/util/common"
 	"learn-fiber/internal/util/validator"
+	"net/http"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/jinzhu/copier"
 )
 
 type Handler struct {
@@ -27,9 +29,9 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	if hasError, err := validator.V.Valid(req); hasError {
 		return ierror.NewValidationError(err)
 	}
-	result, err := h.svc.Login(req)
+	result, err := h.svc.Login(c.IP(), req)
 	if err != nil {
-		return ierror.NewClientError(200, ierror.ErrCodeAuthenticationError, err.Error())
+		return ierror.NewClientError(http.StatusOK, ierror.ErrCodeAuthenticationError, err.Error())
 	}
 	var res TokenResponse
 	if err = copier.Copy(&res, &result); err != nil {
@@ -43,7 +45,7 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 	if err != nil {
 		return ierror.NewAuthenticationError(ierror.ErrCodeAuthenticationError, err.Error())
 	}
-	if err := h.svc.Logout(token); err != nil {
+	if err = h.svc.Logout(token); err != nil {
 		return ierror.NewServerError(ierror.ErrCodeTokenError, err.Error())
 	}
 	return response.SendSuccessResponse(c, constant.Success)
@@ -54,22 +56,21 @@ func (h *Handler) RenewToken(c *fiber.Ctx) error {
 	if hasError, err := validator.V.Valid(req); hasError {
 		return ierror.NewValidationError(err)
 	}
-	result, err := h.svc.RenewToken(req)
+	result, err := h.svc.RenewToken(c.IP(), req)
 	if err != nil {
-		return ierror.NewClientError(200, ierror.ErrCodeAuthenticationError, err.Error())
+		return ierror.NewClientError(http.StatusOK, ierror.ErrCodeDataNotFound, err.Error())
 	}
 	var res TokenResponse
 	if err = copier.Copy(&res, &result); err != nil {
 		return ierror.NewServerError(ierror.ErrCodeDtoError, err.Error())
 	}
 	return response.SendSuccessResponse(c, res)
-
 }
 
 func (h *Handler) Info(c *fiber.Ctx) error {
 	result, err := h.svc.Info(common.GetUser(c))
 	if err != nil {
-		return ierror.NewClientError(200, ierror.ErrCodeAuthenticationError, err.Error())
+		return ierror.NewClientError(http.StatusOK, ierror.ErrCodeAuthenticationError, err.Error())
 	}
 	var res UserResponse
 	if err = copier.Copy(&res, &result); err != nil {
@@ -84,7 +85,7 @@ func (h *Handler) ChangePassword(c *fiber.Ctx) error {
 		return ierror.NewValidationError(err)
 	}
 	if err := h.svc.ChangePassword(common.GetUser(c), req); err != nil {
-		return ierror.NewClientError(200, ierror.ErrCodeValidationError, err.Error())
+		return ierror.NewClientError(http.StatusOK, ierror.ErrCodeValidationError, err.Error())
 	}
 	return response.SendSuccessResponse(c, constant.Success)
 }

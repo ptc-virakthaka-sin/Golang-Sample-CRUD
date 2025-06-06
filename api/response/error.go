@@ -8,7 +8,7 @@ type ErrorObject struct {
 	Code             string            `json:"code"`
 	Message          string            `json:"message"`
 	ValidationErrors []ValidationError `json:"validationErrors,omitempty"`
-	TraceID          string            `json:"traceID"`
+	TraceID          string            `json:"traceID,omitempty"`
 }
 
 type ValidationError struct {

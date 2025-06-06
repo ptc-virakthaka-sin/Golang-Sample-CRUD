@@ -6,6 +6,7 @@ type Token struct {
 	RefreshToken string `gorm:"column:refresh_token; type:varchar(50)"`
 	Username     string `gorm:"column:username; type:varchar(50)"`
 	Expired      int64  `gorm:"column:expired; type:varchar(50)"`
+	Ip           string `gorm:"column:ip; type:varchar(50)"`
 }
 
 func (Token) TableName() string {

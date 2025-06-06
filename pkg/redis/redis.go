@@ -11,11 +11,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const RedisPrefix = "core"
-
+var Prefix = "sample"
 var Client *redis.Client
+var ctx = context.Background()
 
-func Init() error {
+func New() error {
 	log.Println("redis is connecting...")
 	addr := config.Cfg.Redis.Addr
 	if addr == "" {
@@ -27,9 +27,9 @@ func Init() error {
 		Addr:     addr,
 		Password: config.Cfg.Redis.Password,
 	})
-	_, err := Client.Ping(context.Background()).Result()
+	_, err := Client.Ping(ctx).Result()
 	if err != nil {
-		fmt.Println("redis ping err:", err)
+		log.Println("redis ping err:", err)
 		return err
 	}
 	log.Println("redis is connected")
@@ -50,16 +50,16 @@ env: "prod" | "production" => prefix is ""
 func getPrefixKeyByEnv(env string) string {
 	switch env {
 	case "", "local", "localhost", "dev", "development":
-		return RedisPrefix + ":dev"
+		return Prefix + ":dev"
 	case "sit":
-		return RedisPrefix + ":sit"
+		return Prefix + ":sit"
 	case "uat":
-		return RedisPrefix + ":uat"
+		return Prefix + ":uat"
 	}
-	return RedisPrefix
+	return Prefix
 }
 
-func Set(ctx context.Context, key string, value interface{}, expiration time.Duration) (string, error) {
+func Set(key string, value interface{}, exp time.Duration) (string, error) {
 	var val string
 
 	if s, ok := value.(string); ok {
@@ -73,26 +73,26 @@ func Set(ctx context.Context, key string, value interface{}, expiration time.Dur
 		val = s
 	}
 
-	resultVal, err := Client.Set(ctx, prependPrefixKey(key), val, expiration).Result()
+	resultVal, err := Client.Set(ctx, prependPrefixKey(key), val, exp).Result()
 	if err != nil {
 		return "", err
 	}
 	return resultVal, nil
 }
 
-func Get(ctx context.Context, key string) (string, error) {
+func Get(key string) (string, error) {
 	return Client.Get(ctx, prependPrefixKey(key)).Result()
 }
 
-func Del(ctx context.Context, key string) (int64, error) {
+func Del(key string) (int64, error) {
 	return Client.Del(ctx, prependPrefixKey(key)).Result()
 }
 
-func DelMulti(ctx context.Context, keys ...string) (int64, error) {
+func DelMulti(keys ...string) (int64, error) {
 	return Client.Del(ctx, keys...).Result()
 }
 
-func Parse(ctx context.Context, key string, dest interface{}) error {
+func Parse(key string, dest interface{}) error {
 	value, err := Client.Get(ctx, prependPrefixKey(key)).Result()
 	if err != nil {
 		return err
@@ -105,23 +105,31 @@ func Parse(ctx context.Context, key string, dest interface{}) error {
 	return nil
 }
 
-func HSet(ctx context.Context, key string, values ...interface{}) (int64, error) {
+func HSet(key string, values ...interface{}) (int64, error) {
 	return Client.HSet(ctx, prependPrefixKey(key)).Result()
 }
 
-func HGetAll(ctx context.Context, key string, dest interface{}) error {
+func HGetAll(key string, dest interface{}) error {
 	return Client.HGetAll(ctx, "key").Scan(&dest)
 }
 
-func IncrBy(ctx context.Context, key string, value int64) (int64, error) {
+func IncrBy(key string, value int64) (int64, error) {
 	return Client.IncrBy(ctx, prependPrefixKey(key), value).Result()
 }
 
-func Keys(ctx context.Context, pattern string) ([]string, error) {
+func Incr(key string) (int64, error) {
+	return Client.Incr(ctx, prependPrefixKey(key)).Result()
+}
+
+func Exp(key string, exp time.Duration) *redis.BoolCmd {
+	return Client.Expire(ctx, prependPrefixKey(key), exp)
+}
+
+func Keys(pattern string) ([]string, error) {
 	return Client.Keys(ctx, prependPrefixKey(pattern)).Result()
 }
 
-func Exists(ctx context.Context, key string) (bool, error) {
+func Exists(key string) (bool, error) {
 	val, err := Client.Exists(ctx, key).Result()
 	if err != nil {
 		return false, err

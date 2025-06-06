@@ -10,6 +10,7 @@ type Token interface {
 	Remove(token string) error
 	Add(model.Token) (model.Token, error)
 	Get(refresh string) (model.Token, error)
+	Find(ip, username string) (model.Token, error)
 	Renew(entity model.Token) (model.Token, error)
 }
 
@@ -22,7 +23,7 @@ func NewToken(db *gorm.DB) Token {
 }
 
 func (h *token) Remove(token string) error {
-	return h.db.Delete(&model.Token{RefreshToken: token}).Error
+	return h.db.Delete(&model.Token{AccessToken: token}).Error
 }
 
 func (h *token) Add(entity model.Token) (model.Token, error) {
@@ -31,6 +32,10 @@ func (h *token) Add(entity model.Token) (model.Token, error) {
 
 func (h *token) Get(refresh string) (entity model.Token, err error) {
 	return entity, h.db.First(&entity, "refresh_token = ?", refresh).Error
+}
+
+func (h *token) Find(ip, username string) (entity model.Token, err error) {
+	return entity, h.db.First(&entity, "ip = ? and username = ?", ip, username).Error
 }
 
 func (h *token) Renew(entity model.Token) (model.Token, error) {

@@ -1,5 +1,7 @@
 package ierror
 
+import "net/http"
+
 type ServerError struct {
 	Status  int
 	Code    string
@@ -12,8 +14,8 @@ func (e *ServerError) Error() string {
 
 func NewServerError(code, message string) *ServerError {
 	return &ServerError{
+		Status:  http.StatusInternalServerError,
 		Message: message,
-		Status:  500,
 		Code:    code,
 	}
 }

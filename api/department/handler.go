@@ -9,6 +9,7 @@ import (
 	"learn-fiber/internal/service"
 	"learn-fiber/internal/util/common"
 	"learn-fiber/internal/util/validator"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jinzhu/copier"
@@ -80,7 +81,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 	result, err := h.svc.UpdateDepartment(req)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ierror.NewClientError(200, ierror.ErrCodeDataNotFound, err.Error())
+			return ierror.NewClientError(http.StatusOK, ierror.ErrCodeDataNotFound, err.Error())
 		}
 		return ierror.NewServerError(ierror.ErrCodeDatabaseError, err.Error())
 	}

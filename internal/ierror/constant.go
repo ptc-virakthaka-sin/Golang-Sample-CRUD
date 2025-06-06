@@ -29,7 +29,6 @@ const (
 	ErrCodeTransferExceedLimit         = "TRANSFER_EXCEED_LIMIT"
 	ErrCodeAccountNotEnable            = "ACCOUNT_NOT_ENABLE"
 	ErrCodeCustomerNotEnable           = "CUSTOMER_NOT_ENABLE"
-	ErrCodeGLError                     = "GL_ERROR"
 	ErrCodeDepositHistoryNotFound      = "DEPOSIT_HISTORY_NOT_FOUND"
 	ErrCodeWithdrawalHistoryNotFound   = "WITHDRAWAL_HISTORY_NOT_FOUND"
 	ErrCodeBillPaymentHistoryNotFound  = "BILL_PAYMENT_HISTORY_NOT_FOUND"
@@ -43,10 +42,6 @@ const (
 	ErrCodeFirstNameOrLastNameNotExist = "FIRST_NAME_OR_LAST_NAME_NOT_EXIST"
 	ErrCodeInvalidUsernameOrPassword   = "INVALID_USERNAME_OR_PASSWORD"
 	ErrCodeUserNotActive               = "USER_NOT_ACTIVE"
-)
-
-const (
-	ErrSourceNameMApi = "mapi"
 )
 
 var (

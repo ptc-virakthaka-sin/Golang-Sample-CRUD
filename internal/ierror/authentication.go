@@ -4,11 +4,6 @@ import (
 	"net/http"
 )
 
-/*
-Unauthorized 401
-- No authorization header or missing token
-- Invalid token or expired
-*/
 type AuthenticationError struct {
 	Status  int
 	Code    string
@@ -22,7 +17,7 @@ func (e *AuthenticationError) Error() string {
 func NewAuthenticationError(code, message string) *AuthenticationError {
 	return &AuthenticationError{
 		Status:  http.StatusUnauthorized,
-		Code:    code,
 		Message: message,
+		Code:    code,
 	}
 }
