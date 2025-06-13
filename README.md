@@ -1,12 +1,12 @@
 # Golang CRUD Service
 
-This is a sample CRUD service built with **Golang**, demonstrating a layered architecture that separates concerns into handler, service, repository, and model layers. The project uses **TiDB** as the relational database, **Redis** for `caching` and `pub/sub` in-memory operations, and **JWT** for authentication.
+This is a sample CRUD service built with **Golang**, demonstrating a layered architecture that separates concerns into handler, service, repository, and model layers. The project uses **TiDB** as the relational database, **Redis** for `caching` and `async tasks` in-memory operations, and **JWT** for authentication.
 
-## 🚀 Project Purpose
+## Project Purpose
 
 Build a sample CRUD service API with Golang to showcase code structure and common best practices in web API development.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **[Golang](https://golang.org)** — Core programming language
 - **[Fiber](https://gofiber.io)** — Fast HTTP router
@@ -18,7 +18,7 @@ Build a sample CRUD service API with Golang to showcase code structure and commo
 - **[Redis Stream](https://redis.io/docs/latest/develop/data-types/streams)** — Background task queue using consumer group
 - **[JWT](https://github.com/golang-jwt/jwt)** — JSON Web Token implementation for authentication
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── cmd/
@@ -47,22 +47,26 @@ Build a sample CRUD service API with Golang to showcase code structure and commo
 │   └── dto/                       # DTOs for transforming request/response data
 ```
 
-## 📌 Key Concepts
+## Key Concepts
 
 - **Layered Architecture**: Divides the project into clear layers for maintainability and scalability.
-- **Goroutines**: Background task workers use `goroutines` to run concurrently and process `redis stream` jobs efficiently.
+- **Goroutines**: Background task workers use `goroutines` to run concurrent `redis stream` jobs efficiently.
 - **Rate Limit**: Failed attempts and request limited using `redis` to prevent abuse `429 Too Many Requests`.
 - **DTO Pattern**: Uses `copier` to map between internal models and request/response structures.
 - **Validation**: Ensures request payloads are validated with `go-playground/validator`.
 - **ORM**: Leverages `GORM` to interact with `TiDB` in a concise and type-safe way.
+- **SMTP**: Standard `net/smtp` package for email sending to SMTP server.
 
-## 🧪 Running the Project
+> 💡 Tip: If you're using Gmail SMTP: allow **"Less secure apps"** (not recommended)
+
+## Running the Project
 
 1. **Configure Environment**
    Create a `.env` file. find in a `.env.example` file for environment:
-   - JWT Secret key
-   - TiDB connection
    - Redis connection
+   - TiDB connection
+   - Email configure
+   - JWT Secret key
 
 2. **Run the App**
    ```bash
@@ -79,11 +83,12 @@ Build a sample CRUD service API with Golang to showcase code structure and commo
    docker compose up -d
    ```
 
-## 🔧 Future Enhancements
+
+## Future Enhancements
 
 - Add unit tests and integration tests
 - Add Swagger/OpenAPI documentation
 
-## 📄 License
+## License
 
 This project is open-source and available under the [MIT License]().

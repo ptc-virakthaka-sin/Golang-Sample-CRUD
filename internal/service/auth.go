@@ -8,6 +8,7 @@ import (
 	"learn-fiber/internal/dto"
 	"learn-fiber/internal/model"
 	"learn-fiber/internal/repository"
+	"learn-fiber/internal/task/consumer"
 	"learn-fiber/internal/task/producer"
 	"learn-fiber/pkg/crypto"
 	"learn-fiber/pkg/redis"
@@ -46,14 +47,6 @@ func (h *auth) Info(username string) (model.User, error) {
 
 func (h *auth) Login(ip string, req dto.LoginRequest) (token model.Token, err error) {
 	key := "attempt:" + req.Username + ":" + ip
-	_ = producer.Send(map[string]interface{}{
-		"cmd": "send_email",
-		"data": map[string]interface{}{
-			"title": "Change account password",
-			"body":  "Your account password has been changed successfully",
-			"to":    "user.Email",
-		},
-	})
 	user, err := h.repo.GetUser(req.Username)
 	if err != nil {
 		if err = attempts(key); err != nil {
@@ -112,7 +105,6 @@ func (h *auth) RenewToken(ip string, req dto.RenewTokenRequest) (token model.Tok
 	if err != nil {
 		return token, errors.New("refresh token invalid")
 	}
-	token.RefreshToken = uuid.NewString()
 	token.Expired = time.Now().Add(time.Hour).Unix()
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.Username,
@@ -120,6 +112,7 @@ func (h *auth) RenewToken(ip string, req dto.RenewTokenRequest) (token model.Tok
 		"exp":      token.Expired,
 	})
 	token.Ip = ip
+	token.RefreshToken = uuid.NewString()
 	token.AccessToken, err = claims.SignedString([]byte(config.Cfg.JWT.Secret))
 	if err != nil {
 		return token, err
@@ -150,13 +143,16 @@ func (h *auth) ChangePassword(username string, req dto.ChangePassRequest) error 
 	if err != nil {
 		return err
 	}
-	_ = producer.Send(map[string]interface{}{
-		"cmd": "send_email",
-		"data": map[string]interface{}{
-			"title": "Change account password",
-			"body":  "Your account password has been changed successfully",
-			"to":    user.Email,
-		},
-	})
+	data := consumer.EmailData{
+		Body:  "Your account password has been changed successfully",
+		Title: "Change Account Password",
+		To:    user.Email,
+	}
+	sendMail(data)
 	return h.repo.UpdatePass(username, hashPass)
+}
+
+func sendMail(data consumer.EmailData) {
+	message := consumer.EmailCommand{Cmd: "send_email", Data: data}
+	producer.Send(message)
 }

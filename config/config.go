@@ -21,6 +21,7 @@ type (
 		App      `mapstructure:",squash"`
 		Log      `mapstructure:",squash"`
 		DB       `mapstructure:",squash"`
+		Email    `mapstructure:",squash"`
 		Redis    `mapstructure:",squash"`
 		PermLogs `mapstructure:",squash"`
 		JWT      `mapstructure:",squash"`
@@ -45,6 +46,13 @@ type (
 		Name        string `mapstructure:"db_name"`
 		UseSSL      string `mapstructure:"db_use_ssl"`
 		AutoMigrate bool   `mapstructure:"db_auto_migrate"`
+	}
+
+	Email struct {
+		Host     string `mapstructure:"email_host"`
+		Port     string `mapstructure:"email_port"`
+		Username string `mapstructure:"email_username"`
+		Password string `mapstructure:"email_password"`
 	}
 
 	Redis struct {
@@ -113,6 +121,11 @@ func Init() error {
 	pflag.String("db_use_ssl", "", "database use ssl")
 	pflag.Bool("db_auto_migrate", false, "database auto migrate")
 
+	pflag.String("email_host", "", "database host")
+	pflag.String("email_port", "", "database port")
+	pflag.String("email_username", "", "database username")
+	pflag.String("email_password", "", "database password")
+
 	pflag.String("redis_addr", "", "redis address")
 	pflag.String("redis_port", "6379", "redis port")
 	pflag.String("redis_pwd", "", "redis password")
@@ -151,6 +164,12 @@ func Init() error {
 			Name:        viper.GetString("db_name"),
 			UseSSL:      viper.GetString("db_use_ssl"),
 			AutoMigrate: viper.GetBool("db_auto_migrate"),
+		},
+		Email: Email{
+			Host:     viper.GetString("email_host"),
+			Port:     viper.GetString("email_port"),
+			Username: viper.GetString("email_username"),
+			Password: viper.GetString("email_password"),
 		},
 		Redis: Redis{
 			Addr:     viper.GetString("redis_addr"),

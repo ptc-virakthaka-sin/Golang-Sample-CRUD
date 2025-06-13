@@ -7,6 +7,7 @@ import (
 )
 
 type User interface {
+	GetUsername(email string) (string, error)
 	GetUser(username string) (model.User, error)
 	UpdatePass(username, password string) error
 }
@@ -17,6 +18,13 @@ type user struct {
 
 func NewUser(db *gorm.DB) User {
 	return &user{db: db}
+}
+
+func (h *user) GetUsername(email string) (username string, err error) {
+	err = h.db.Model(&model.User{}).Select("username").
+		Where("email = ?", email).
+		Scan(&username).Error
+	return username, err
 }
 
 func (h *user) GetUser(username string) (entity model.User, err error) {
